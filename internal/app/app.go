@@ -6,19 +6,25 @@ import (
 	"time"
 
 	"github.com/Meystergod/gochat/internal/config"
+	"github.com/Meystergod/gochat/internal/controller"
 	"github.com/Meystergod/gochat/internal/delivery/http/v1/httpecho"
+	"github.com/Meystergod/gochat/internal/repository/mongorepo"
+	"github.com/Meystergod/gochat/internal/usecase"
+	"github.com/Meystergod/gochat/internal/utils"
 	"github.com/Meystergod/gochat/pkg/client"
 	"github.com/Meystergod/gochat/pkg/httpserver"
 	"github.com/Meystergod/gochat/pkg/ossignal"
 
 	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
+	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/sync/errgroup"
 )
 
 type Application struct {
 	cfg        *config.Config
 	httpServer *httpserver.Server
+	db         *mongo.Database
 }
 
 func NewApplication(ctx context.Context, cfg *config.Config) (*Application, error) {
@@ -31,7 +37,7 @@ func NewApplication(ctx context.Context, cfg *config.Config) (*Application, erro
 		cfg.Database.Name,
 	)
 
-	_, err := client.NewMongoDatabase(ctx, dbConfig)
+	db, err := client.NewMongoDatabase(ctx, dbConfig)
 	if err != nil {
 		return nil, errors.Wrap(err, "connecting database")
 	}
@@ -39,6 +45,7 @@ func NewApplication(ctx context.Context, cfg *config.Config) (*Application, erro
 	return &Application{
 		cfg:        cfg,
 		httpServer: nil,
+		db:         db,
 	}, nil
 }
 
@@ -103,7 +110,11 @@ func (a *Application) startHTTP(ctx context.Context) error {
 	a.httpServer = httpserver.NewDefaultServer(httpServerDeps)
 	logger.Debug().Msg("created new http server")
 
-	httpecho.SetUserApiRoutes(a.httpServer.Server())
+	userRepository := mongorepo.NewUserRepository(a.db, utils.CollNameUser)
+	userController := controller.NewUserController(userRepository)
+	userUsecase := usecase.NewUserUsecase(userController)
+
+	httpecho.SetUserApiRoutes(a.httpServer.Server(), userUsecase)
 	logger.Debug().Msg("set api routes for user")
 
 	addr := fmt.Sprintf("%s:%s", a.cfg.HTTPServer.Host, a.cfg.HTTPServer.Port)

@@ -1,6 +1,8 @@
 package dto
 
-import "github.com/google/uuid"
+import (
+	"github.com/Meystergod/gochat/internal/entity/model"
+)
 
 type CreateUserDTO struct {
 	Name     string `json:"name" bson:"name"`
@@ -9,8 +11,23 @@ type CreateUserDTO struct {
 }
 
 type UpdateUserDTO struct {
-	ID       uuid.UUID `json:"id" bson:"_id,omitempty"`
-	Name     string    `json:"name" bson:"name"`
-	Email    string    `json:"email" bson:"email"`
-	Password string    `json:"password" bson:"password"`
+	Name     string `json:"name" bson:"name"`
+	Email    string `json:"email" bson:"email"`
+	Password string `json:"password" bson:"password"`
+}
+
+func (createUserDTO *CreateUserDTO) ToModel() *model.User {
+	return &model.User{
+		Name:     createUserDTO.Name,
+		Email:    createUserDTO.Email,
+		Password: createUserDTO.Password,
+	}
+}
+
+func (updateUserDTO *UpdateUserDTO) ToModel() *model.User {
+	return &model.User{
+		Name:     updateUserDTO.Name,
+		Email:    updateUserDTO.Email,
+		Password: updateUserDTO.Password,
+	}
 }
