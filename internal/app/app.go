@@ -3,10 +3,11 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/Meystergod/gochat/internal/delivery/http/v1/httpecho"
 	"time"
 
 	"github.com/Meystergod/gochat/internal/config"
+	"github.com/Meystergod/gochat/internal/delivery/http/v1/httpecho"
+	"github.com/Meystergod/gochat/pkg/client"
 	"github.com/Meystergod/gochat/pkg/httpserver"
 	"github.com/Meystergod/gochat/pkg/ossignal"
 
@@ -20,8 +21,22 @@ type Application struct {
 	httpServer *httpserver.Server
 }
 
-func NewApplication(_ context.Context, cfg *config.Config) (Application, error) {
-	return Application{
+func NewApplication(ctx context.Context, cfg *config.Config) (*Application, error) {
+	dbConfig := client.NewMongoConfig(
+		cfg.Database.Auth,
+		cfg.Database.Username,
+		cfg.Database.Password,
+		cfg.Database.Host,
+		cfg.Database.Port,
+		cfg.Database.Name,
+	)
+
+	_, err := client.NewMongoDatabase(ctx, dbConfig)
+	if err != nil {
+		return nil, errors.Wrap(err, "connecting database")
+	}
+
+	return &Application{
 		cfg:        cfg,
 		httpServer: nil,
 	}, nil
