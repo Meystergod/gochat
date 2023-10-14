@@ -1,0 +1,17 @@
+version: "3.3"
+
+services:
+  gochat:
+    build: .
+    ports:
+      - 8000:8000
+    restart: always
+
+  db:
+    image: mongo:4.4
+    volumes:
+      - ./temp/mongo:/data/db
+    command: mongod --bind_ip_all
+    restart: always
+    ports:
+      - 57017:27017
