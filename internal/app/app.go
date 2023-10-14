@@ -8,7 +8,7 @@ import (
 	"github.com/Meystergod/gochat/internal/config"
 	"github.com/Meystergod/gochat/internal/controller"
 	"github.com/Meystergod/gochat/internal/delivery/http/v1/httpecho"
-	"github.com/Meystergod/gochat/internal/repository/mongorepo"
+	"github.com/Meystergod/gochat/internal/repository/mongodb"
 	"github.com/Meystergod/gochat/internal/usecase"
 	"github.com/Meystergod/gochat/internal/utils"
 	"github.com/Meystergod/gochat/pkg/client"
@@ -110,7 +110,7 @@ func (a *Application) startHTTP(ctx context.Context) error {
 	a.httpServer = httpserver.NewDefaultServer(httpServerDeps)
 	logger.Debug().Msg("created new http server")
 
-	userRepository := mongorepo.NewUserRepository(a.db, utils.CollNameUser)
+	userRepository := mongodb.NewUserRepository(a.db, utils.CollNameUser)
 	userController := controller.NewUserController(userRepository)
 	userUsecase := usecase.NewUserUsecase(userController)
 
