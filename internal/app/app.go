@@ -110,11 +110,13 @@ func (a *Application) startHTTP(ctx context.Context) error {
 	a.httpServer = httpserver.NewDefaultServer(httpServerDeps)
 	logger.Debug().Msg("created new http server")
 
-	userRepository := mongodb.NewUserRepository(a.db, utils.CollNameUser)
-	userController := controller.NewUserController(userRepository)
-	userUsecase := usecase.NewUserUsecase(userController)
+	a.httpServer.Server().Validator = utils.NewValidator()
 
-	httpecho.SetUserApiRoutes(a.httpServer.Server(), userUsecase)
+	userRepository := mongodb.NewUserRepository(a.db, utils.CollNameUser)
+	userUsecase := usecase.NewUserUsecase(userRepository)
+	userController := controller.NewUserController(userUsecase)
+
+	httpecho.SetUserApiRoutes(a.httpServer.Server(), userController)
 	logger.Debug().Msg("set api routes for user")
 
 	addr := fmt.Sprintf("%s:%s", a.cfg.HTTPServer.Host, a.cfg.HTTPServer.Port)
@@ -130,4 +132,8 @@ func (a *Application) startHTTP(ctx context.Context) error {
 
 func (a *Application) shutdownHTTP(ctx context.Context) error {
 	return a.httpServer.Shutdown(ctx)
+}
+
+func (a *Application) migrate(_ context.Context) error {
+	return nil
 }

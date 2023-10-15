@@ -4,7 +4,7 @@ services:
   gochat:
     build: .
     ports:
-      - 8000:8000
+      - "8000:8000"
     restart: always
 
   db:
@@ -14,4 +14,4 @@ services:
     command: mongod --bind_ip_all
     restart: always
     ports:
-      - 57017:27017
+      - "57017:27017"

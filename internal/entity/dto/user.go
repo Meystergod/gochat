@@ -5,15 +5,15 @@ import (
 )
 
 type CreateUserDTO struct {
-	Name     string `json:"name" bson:"name"`
-	Email    string `json:"email" bson:"email"`
-	Password string `json:"password" bson:"password"`
+	Name     string `json:"name" bson:"name" validate:"required"`
+	Email    string `json:"email" bson:"email" validate:"required"`
+	Password string `json:"password" bson:"password" validate:"required"`
 }
 
 type UpdateUserDTO struct {
-	Name     string `json:"name" bson:"name"`
-	Email    string `json:"email" bson:"email"`
-	Password string `json:"password" bson:"password"`
+	Name     string `json:"name" bson:"name" validate:"required"`
+	Email    string `json:"email" bson:"email" validate:"required"`
+	Password string `json:"password" bson:"password" validate:"required"`
 }
 
 func (createUserDTO *CreateUserDTO) ToModel() *model.User {

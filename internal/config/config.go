@@ -22,12 +22,12 @@ type Config struct {
 	}
 
 	Database struct {
-		Host     string `envconfig:"DB_HOST" default:"localhost"`
-		Port     string `envconfig:"DB_PORT" default:"27017"`
+		Host     string `envconfig:"DB_HOST" default:"0.0.0.0"`
+		Port     string `envconfig:"DB_PORT" default:"57017"`
 		Username string `envconfig:"DB_USERNAME"`
 		Password string `envconfig:"DB_PASSWORD"`
 		Auth     string `envconfig:"DB_AUTH"`
-		Name     string `envconfig:"DB_NAME" default:"gochat"`
+		Name     string `envconfig:"DB_NAME" default:"gochat-db-1"`
 	}
 
 	Application struct {

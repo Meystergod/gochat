@@ -8,7 +8,6 @@ import (
 	"github.com/Meystergod/gochat/internal/repository"
 	"github.com/Meystergod/gochat/internal/utils"
 
-	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -25,17 +24,32 @@ func NewUserRepository(storage *mongo.Database, collection string) repository.Us
 	}
 }
 
-func (userRepository *userRepository) GetUser(ctx context.Context, uuid uuid.UUID) (*model.User, error) {
+func (userRepository *userRepository) CreateUser(ctx context.Context, user *model.User) (primitive.ObjectID, error) {
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+
+	defer cancel()
+
+	var oid primitive.ObjectID
+
+	result, err := userRepository.collection.InsertOne(ctx, user)
+	if err != nil {
+		return oid, errors.Wrap(err, utils.ErrorExecuteQuery.Error())
+	}
+
+	oid, ok := result.InsertedID.(primitive.ObjectID)
+	if !ok {
+		return oid, errors.Wrap(errors.New("error convert hex to oid"), utils.ErrorConvert.Error())
+	}
+
+	return oid, nil
+}
+
+func (userRepository *userRepository) GetUser(ctx context.Context, oid primitive.ObjectID) (*model.User, error) {
 	var user *model.User
 
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	defer cancel()
-
-	oid, err := primitive.ObjectIDFromHex(uuid.String())
-	if err != nil {
-		return user, errors.Wrap(err, utils.ErrorConvert.Error())
-	}
 
 	filter := bson.M{"_id": oid}
 
@@ -44,7 +58,7 @@ func (userRepository *userRepository) GetUser(ctx context.Context, uuid uuid.UUI
 		return user, errors.Wrap(result.Err(), utils.ErrorExecuteQuery.Error())
 	}
 
-	if err = result.Decode(&user); err != nil {
+	if err := result.Decode(&user); err != nil {
 		return user, errors.Wrap(err, utils.ErrorDecode.Error())
 	}
 
@@ -68,35 +82,12 @@ func (userRepository *userRepository) GetAllUsers(ctx context.Context) (*[]model
 	return &users, nil
 }
 
-func (userRepository *userRepository) CreateUser(ctx context.Context, user *model.User) (string, error) {
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-
-	defer cancel()
-
-	result, err := userRepository.collection.InsertOne(ctx, user)
-	if err != nil {
-		return utils.EmptyString, errors.Wrap(err, utils.ErrorExecuteQuery.Error())
-	}
-
-	oid, ok := result.InsertedID.(primitive.ObjectID)
-	if !ok {
-		return utils.EmptyString, errors.Wrap(errors.New("error convert hex to oid"), utils.ErrorConvert.Error())
-	}
-
-	return oid.Hex(), nil
-}
-
 func (userRepository *userRepository) UpdateUser(ctx context.Context, user *model.User) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	defer cancel()
 
-	oid, err := primitive.ObjectIDFromHex(user.ID.String())
-	if err != nil {
-		return errors.Wrap(err, utils.ErrorConvert.Error())
-	}
-
-	filter := bson.M{"_id": oid}
+	filter := bson.M{"_id": user.ID}
 
 	userByte, err := bson.Marshal(user)
 	if err != nil {
@@ -128,15 +119,10 @@ func (userRepository *userRepository) UpdateUser(ctx context.Context, user *mode
 	return nil
 }
 
-func (userRepository *userRepository) DeleteUser(ctx context.Context, uuid uuid.UUID) error {
+func (userRepository *userRepository) DeleteUser(ctx context.Context, oid primitive.ObjectID) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 
 	defer cancel()
-
-	oid, err := primitive.ObjectIDFromHex(uuid.String())
-	if err != nil {
-		return errors.Wrap(errors.New("error convert hex to oid"), utils.ErrorConvert.Error())
-	}
 
 	filter := bson.M{"_id": oid}
 
