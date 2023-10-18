@@ -28,7 +28,7 @@ func (userRepository *UserRepository) CreateUser(ctx context.Context, domainUser
 
 	defer cancel()
 
-	repositoryUser, err := userToRepository(domainUser)
+	repositoryUser, err := userToRepository(domainUser, MethodCreate)
 	if err != nil {
 		return utils.EmptyString, errors.Wrap(err, utils.ErrorConvertDomainToRepository.Error())
 	}
@@ -102,7 +102,7 @@ func (userRepository *UserRepository) UpdateUser(ctx context.Context, domainUser
 
 	defer cancel()
 
-	repositoryUser, err := userToRepository(domainUser)
+	repositoryUser, err := userToRepository(domainUser, MethodUpdate)
 	if err != nil {
 		return errors.Wrap(err, utils.ErrorConvertDomainToRepository.Error())
 	}

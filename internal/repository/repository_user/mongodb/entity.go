@@ -11,6 +11,5 @@ type User struct {
 	Name         string             `bson:"name"`
 	Email        string             `bson:"email"`
 	Password     string             `bson:"password"`
-	RegisteredAt time.Time          `bson:"registered_at"`
-	LastVisitAt  time.Time          `bson:"last_visit_at"`
+	RegisteredAt time.Time          `bson:"registered_at,omitempty"`
 }

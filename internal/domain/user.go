@@ -10,5 +10,4 @@ type User struct {
 	Email        string    `json:"email"`
 	Password     string    `json:"password"`
 	RegisteredAt time.Time `json:"registered_at"`
-	LastVisitAt  time.Time `json:"last_visit_at"`
 }

@@ -27,7 +27,6 @@ func NewUserUsecase(userRepository UserRepository) *UserUsecase {
 }
 
 func (userUsecase *UserUsecase) Signup(ctx context.Context, user *domain.User) (string, error) {
-	user.LastVisitAt = time.Now()
 	user.RegisteredAt = time.Now()
 
 	id, err := userUsecase.userRepository.CreateUser(ctx, user)

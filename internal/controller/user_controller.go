@@ -71,7 +71,10 @@ func (userController *UserController) UpdateUserInfo(c echo.Context) error {
 		return utils.Negotiate(c, http.StatusBadRequest, utils.ErrorBindAndValidatePayload.Error())
 	}
 
-	err := userController.userUsecase.UpdateUserInfo(c.Request().Context(), payload.ToModel())
+	user := payload.ToModel()
+	user.ID = id
+
+	err := userController.userUsecase.UpdateUserInfo(c.Request().Context(), user)
 	if err != nil {
 		return utils.Negotiate(c, http.StatusInternalServerError, err.Error())
 	}

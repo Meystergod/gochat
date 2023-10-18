@@ -8,6 +8,9 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+const MethodCreate = "create"
+const MethodUpdate = "update"
+
 func userToDomain(u *User) domain.User {
 	return domain.User{
 		ID:           u.ID.Hex(),
@@ -15,22 +18,30 @@ func userToDomain(u *User) domain.User {
 		Email:        u.Email,
 		Password:     u.Password,
 		RegisteredAt: u.RegisteredAt,
-		LastVisitAt:  u.LastVisitAt,
 	}
 }
 
-func userToRepository(user *domain.User) (User, error) {
-	oid, err := primitive.ObjectIDFromHex(user.ID)
-	if err != nil {
-		return User{}, errors.Wrap(err, utils.ErrorConvert.Error())
+func userToRepository(user *domain.User, method string) (User, error) {
+	switch method {
+	case MethodCreate:
+		return User{
+			Name:         user.Name,
+			Email:        user.Email,
+			Password:     user.Password,
+			RegisteredAt: user.RegisteredAt,
+		}, nil
+	case MethodUpdate:
+		oid, err := primitive.ObjectIDFromHex(user.ID)
+		if err != nil {
+			return User{}, errors.Wrap(err, utils.ErrorConvert.Error())
+		}
+		return User{
+			ID:       oid,
+			Name:     user.Name,
+			Email:    user.Email,
+			Password: user.Password,
+		}, nil
+	default:
+		return User{}, errors.Wrap(errors.New("unknown method for convert to repository model"), utils.ErrorConvert.Error())
 	}
-
-	return User{
-		ID:           oid,
-		Name:         user.Name,
-		Email:        user.Email,
-		Password:     user.Password,
-		RegisteredAt: user.RegisteredAt,
-		LastVisitAt:  user.LastVisitAt,
-	}, nil
 }
