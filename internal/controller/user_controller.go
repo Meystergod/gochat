@@ -3,29 +3,28 @@ package controller
 import (
 	"net/http"
 
-	"github.com/Meystergod/gochat/internal/entity/dto"
-	"github.com/Meystergod/gochat/internal/usecase"
+	"github.com/Meystergod/gochat/internal/usecase/usecase_user"
 	"github.com/Meystergod/gochat/internal/utils"
 
 	"github.com/labstack/echo/v4"
 )
 
 type UserController struct {
-	userUsecase *usecase.UserUsecase
+	userUsecase *usecase_user.UserUsecase
 }
 
-func NewUserController(userUsecase *usecase.UserUsecase) *UserController {
+func NewUserController(userUsecase *usecase_user.UserUsecase) *UserController {
 	return &UserController{userUsecase: userUsecase}
 }
 
-func (userController *UserController) CreateUser(c echo.Context) error {
-	var payload dto.CreateUserDTO
+func (userController *UserController) Signup(c echo.Context) error {
+	var payload CreateUserDTO
 
 	if err := utils.BindAndValidate(c, &payload); err != nil {
 		return utils.Negotiate(c, http.StatusBadRequest, utils.ErrorBindAndValidatePayload.Error())
 	}
 
-	createdUserID, err := userController.userUsecase.CreateUser(c.Request().Context(), payload.ToModel())
+	createdUserID, err := userController.userUsecase.Signup(c.Request().Context(), payload.ToModel())
 	if err != nil {
 		return utils.Negotiate(c, http.StatusInternalServerError, err.Error())
 	}
@@ -66,15 +65,13 @@ func (userController *UserController) UpdateUserInfo(c echo.Context) error {
 		return utils.Negotiate(c, http.StatusBadRequest, utils.ErrorGetUrlParams.Error())
 	}
 
-	var payload dto.UpdateUserDTO
+	var payload UpdateUserDTO
 
 	if err := utils.BindAndValidate(c, &payload); err != nil {
 		return utils.Negotiate(c, http.StatusBadRequest, utils.ErrorBindAndValidatePayload.Error())
 	}
 
-	user := payload.ToModel()
-
-	err := userController.userUsecase.UpdateUserInfo(c.Request().Context(), user, id)
+	err := userController.userUsecase.UpdateUserInfo(c.Request().Context(), payload.ToModel())
 	if err != nil {
 		return utils.Negotiate(c, http.StatusInternalServerError, err.Error())
 	}

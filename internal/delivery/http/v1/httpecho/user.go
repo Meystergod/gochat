@@ -9,7 +9,7 @@ import (
 func SetUserApiRoutes(e *echo.Echo, userController *controller.UserController) {
 	v1 := e.Group("/api/v1")
 	{
-		v1.POST("/user", userController.CreateUser)
+		v1.POST("/signup", userController.Signup)
 		v1.GET("/user/:id", userController.GetUserInfo)
 		v1.GET("/users", userController.GetAllUsersInfo)
 		v1.PUT("/user/:id", userController.UpdateUserInfo)

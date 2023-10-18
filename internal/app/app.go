@@ -8,8 +8,8 @@ import (
 	"github.com/Meystergod/gochat/internal/config"
 	"github.com/Meystergod/gochat/internal/controller"
 	"github.com/Meystergod/gochat/internal/delivery/http/v1/httpecho"
-	"github.com/Meystergod/gochat/internal/repository/mongodb"
-	"github.com/Meystergod/gochat/internal/usecase"
+	"github.com/Meystergod/gochat/internal/repository/repository_user/mongodb"
+	"github.com/Meystergod/gochat/internal/usecase/usecase_user"
 	"github.com/Meystergod/gochat/internal/utils"
 	"github.com/Meystergod/gochat/pkg/client"
 	"github.com/Meystergod/gochat/pkg/httpserver"
@@ -112,8 +112,8 @@ func (a *Application) startHTTP(ctx context.Context) error {
 
 	a.httpServer.Server().Validator = utils.NewValidator()
 
-	userRepository := mongodb.NewUserRepository(a.db, utils.CollNameUser)
-	userUsecase := usecase.NewUserUsecase(userRepository)
+	userRepository := repository_user.NewUserRepository(a.db, utils.CollNameUser)
+	userUsecase := usecase_user.NewUserUsecase(userRepository)
 	userController := controller.NewUserController(userUsecase)
 
 	httpecho.SetUserApiRoutes(a.httpServer.Server(), userController)
