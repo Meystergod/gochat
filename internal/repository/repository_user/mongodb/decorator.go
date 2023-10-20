@@ -2,7 +2,6 @@ package repository_user
 
 import (
 	"github.com/Meystergod/gochat/internal/domain"
-	"github.com/Meystergod/gochat/internal/utils"
 
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -33,7 +32,7 @@ func userToRepository(user *domain.User, method string) (User, error) {
 	case MethodUpdate:
 		oid, err := primitive.ObjectIDFromHex(user.ID)
 		if err != nil {
-			return User{}, errors.Wrap(err, utils.ErrorConvert.Error())
+			return User{}, err
 		}
 		return User{
 			ID:       oid,
@@ -42,6 +41,6 @@ func userToRepository(user *domain.User, method string) (User, error) {
 			Password: user.Password,
 		}, nil
 	default:
-		return User{}, errors.Wrap(errors.New("unknown method for convert to repository model"), utils.ErrorConvert.Error())
+		return User{}, errors.New("unknown method for convert to repository model")
 	}
 }
