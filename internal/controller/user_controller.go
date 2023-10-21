@@ -64,7 +64,7 @@ func (userController *UserController) GetAllUsersInfo(c echo.Context) error {
 func (userController *UserController) UpdateUserInfo(c echo.Context) error {
 	id := c.Param("id")
 	if id == "" {
-		return utils.Negotiate(c, http.StatusBadRequest, utils.ErrorGetUrlParams.Error())
+		return apperror.NewAppError(apperror.ErrorGetUrlParams, "could not get user id")
 	}
 
 	var payload UpdateUserDTO

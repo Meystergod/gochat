@@ -19,11 +19,11 @@ func (v *Validator) Validate(i interface{}) error {
 
 func BindAndValidate(c echo.Context, i interface{}) error {
 	if err := c.Bind(i); err != nil {
-		return BadRequestException(err.Error())
+		return err
 	}
 
 	if err := c.Validate(i); err != nil {
-		return BadRequestException(err.Error())
+		return err
 	}
 
 	return nil
