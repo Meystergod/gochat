@@ -44,7 +44,7 @@ func (userRepository *UserRepository) CreateUser(ctx context.Context, domainUser
 	oid, ok := result.InsertedID.(primitive.ObjectID)
 	if !ok {
 		err = errors.Wrap(err, "failed to convert user id to oid")
-		return utils.EmptyString, apperror.NewAppError(apperror.ErrorConvertId, err.Error())
+		return utils.EmptyString, apperror.NewAppError(apperror.ErrorConvert, err.Error())
 	}
 
 	return oid.Hex(), nil
@@ -60,14 +60,14 @@ func (userRepository *UserRepository) GetUser(ctx context.Context, id string) (*
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		err = errors.Wrap(err, "failed to convert user id to oid")
-		return nil, apperror.NewAppError(apperror.ErrorConvertId, err.Error())
+		return nil, apperror.NewAppError(apperror.ErrorConvert, err.Error())
 	}
 
 	filter := bson.M{"_id": oid}
 
 	result := userRepository.collection.FindOne(ctx, filter)
 	if result.Err() != nil {
-		err = errors.Wrap(err, "failed to get user")
+		err = errors.Wrap(result.Err(), "failed to get user")
 		return nil, apperror.NewAppError(apperror.ErrorGetOne, err.Error())
 	}
 
@@ -146,7 +146,7 @@ func (userRepository *UserRepository) UpdateUser(ctx context.Context, domainUser
 	}
 
 	if result.MatchedCount == 0 {
-		err = errors.Wrap(err, "failed to get user in database for update")
+		err = errors.New("can not be matched: failed to get user in database for update")
 		return apperror.NewAppError(apperror.ErrorUpdateOne, err.Error())
 	}
 
@@ -161,7 +161,7 @@ func (userRepository *UserRepository) DeleteUser(ctx context.Context, id string)
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		err = errors.Wrap(err, "failed to convert user id to oid")
-		return apperror.NewAppError(apperror.ErrorConvertId, err.Error())
+		return apperror.NewAppError(apperror.ErrorConvert, err.Error())
 	}
 
 	filter := bson.M{"_id": oid}
@@ -173,7 +173,7 @@ func (userRepository *UserRepository) DeleteUser(ctx context.Context, id string)
 	}
 
 	if result.DeletedCount == 0 {
-		err = errors.Wrap(err, "failed to get user in database for delete")
+		err = errors.New("can not be deleted: failed to get user in database for delete")
 		return apperror.NewAppError(apperror.ErrorDeleteOne, err.Error())
 	}
 

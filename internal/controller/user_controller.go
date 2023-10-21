@@ -3,6 +3,8 @@ package controller
 import (
 	"net/http"
 
+	"github.com/Meystergod/gochat/internal/apperror"
+	"github.com/Meystergod/gochat/internal/domain"
 	"github.com/Meystergod/gochat/internal/usecase/usecase_user"
 	"github.com/Meystergod/gochat/internal/utils"
 
@@ -21,42 +23,42 @@ func (userController *UserController) Signup(c echo.Context) error {
 	var payload CreateUserDTO
 
 	if err := utils.BindAndValidate(c, &payload); err != nil {
-		return utils.Negotiate(c, http.StatusBadRequest, utils.ErrorBindAndValidatePayload.Error())
+		return apperror.NewAppError(apperror.ErrorValidatePayload, err.Error())
 	}
 
 	createdUserID, err := userController.userUsecase.Signup(c.Request().Context(), payload.ToModel())
 	if err != nil {
-		return utils.Negotiate(c, http.StatusInternalServerError, err.Error())
+		return err
 	}
 
-	return utils.Negotiate(c, http.StatusCreated, createdUserID)
+	return utils.Negotiate(c, http.StatusCreated, map[string]string{"id": createdUserID})
 }
 
 func (userController *UserController) GetUserInfo(c echo.Context) error {
 	id := c.Param("id")
 	if id == "" {
-		return utils.Negotiate(c, http.StatusBadRequest, utils.ErrorGetUrlParams.Error())
+		return apperror.NewAppError(apperror.ErrorGetUrlParams, "could not get user id")
 	}
 
 	user, err := userController.userUsecase.GetUserInfo(c.Request().Context(), id)
 	if err != nil {
-		return utils.Negotiate(c, http.StatusInternalServerError, err.Error())
+		return err
 	}
 
-	return utils.Negotiate(c, http.StatusOK, user)
+	return utils.Negotiate(c, http.StatusOK, map[string]domain.User{"user": *user})
 }
 
 func (userController *UserController) GetAllUsersInfo(c echo.Context) error {
 	users, err := userController.userUsecase.GetAllUsersInfo(c.Request().Context())
 	if err != nil {
-		return utils.Negotiate(c, http.StatusInternalServerError, err.Error())
+		return err
 	}
 
 	if len(*users) == 0 {
-		return utils.Negotiate(c, http.StatusOK, "list is empty")
+		return utils.Negotiate(c, http.StatusOK, map[string]string{"users": "list is empty"})
 	}
 
-	return utils.Negotiate(c, http.StatusOK, users)
+	return utils.Negotiate(c, http.StatusOK, map[string][]domain.User{"users": *users})
 }
 
 func (userController *UserController) UpdateUserInfo(c echo.Context) error {
@@ -68,7 +70,7 @@ func (userController *UserController) UpdateUserInfo(c echo.Context) error {
 	var payload UpdateUserDTO
 
 	if err := utils.BindAndValidate(c, &payload); err != nil {
-		return utils.Negotiate(c, http.StatusBadRequest, utils.ErrorBindAndValidatePayload.Error())
+		return apperror.NewAppError(apperror.ErrorValidatePayload, err.Error())
 	}
 
 	user := payload.ToModel()
@@ -76,22 +78,22 @@ func (userController *UserController) UpdateUserInfo(c echo.Context) error {
 
 	err := userController.userUsecase.UpdateUserInfo(c.Request().Context(), user)
 	if err != nil {
-		return utils.Negotiate(c, http.StatusInternalServerError, err.Error())
+		return err
 	}
 
-	return utils.Negotiate(c, http.StatusOK, id)
+	return utils.Negotiate(c, http.StatusCreated, map[string]string{"id": id})
 }
 
 func (userController *UserController) DeleteUserAccount(c echo.Context) error {
 	id := c.Param("id")
 	if id == "" {
-		return utils.Negotiate(c, http.StatusBadRequest, utils.ErrorGetUrlParams.Error())
+		return apperror.NewAppError(apperror.ErrorGetUrlParams, "could not get user id")
 	}
 
 	err := userController.userUsecase.DeleteUserAccount(c.Request().Context(), id)
 	if err != nil {
-		return utils.Negotiate(c, http.StatusInternalServerError, err.Error())
+		return err
 	}
 
-	return utils.Negotiate(c, http.StatusNoContent, id)
+	return utils.Negotiate(c, http.StatusCreated, map[string]string{"id": id})
 }

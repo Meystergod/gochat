@@ -3,6 +3,9 @@ package app
 import (
 	"context"
 	"fmt"
+	"github.com/Meystergod/gochat/internal/apperror"
+	"github.com/labstack/echo/v4"
+	"net/http"
 	"time"
 
 	"github.com/Meystergod/gochat/internal/config"
@@ -109,6 +112,39 @@ func (a *Application) startHTTP(ctx context.Context) error {
 
 	a.httpServer = httpserver.NewDefaultServer(httpServerDeps)
 	logger.Debug().Msg("created new http server")
+
+	a.httpServer.Server().HTTPErrorHandler = func(err error, c echo.Context) {
+		if c.Response().Committed {
+			return
+		}
+
+		var appError *apperror.AppError
+		if errors.As(err, &appError) {
+			switch {
+			case errors.Is(appError.Err, apperror.ErrorDecode),
+				errors.Is(appError.Err, apperror.ErrorCreateOne),
+				errors.Is(appError.Err, apperror.ErrorConvert),
+				errors.Is(appError.Err, apperror.ErrorGetOne),
+				errors.Is(appError.Err, apperror.ErrorGetAll),
+				errors.Is(appError.Err, apperror.ErrorUpdateOne),
+				errors.Is(appError.Err, apperror.ErrorDeleteOne),
+				errors.Is(appError.Err, apperror.ErrorConvertModel):
+
+				appError.ErrorMessage = appError.Error()
+				if jsonError := c.JSON(http.StatusInternalServerError, &appError); jsonError != nil {
+					logger.Error().Msgf("failed to create json response: %s", jsonError.Error())
+				}
+				return
+			case errors.Is(appError.Err, apperror.ErrorValidatePayload):
+				appError.ErrorMessage = appError.Error()
+				if jsonError := c.JSON(http.StatusBadRequest, &appError); jsonError != nil {
+					logger.Error().Msgf("failed to validate json response: %s", jsonError.Error())
+				}
+				return
+			}
+		}
+		a.httpServer.Server().DefaultHTTPErrorHandler(err, c)
+	}
 
 	a.httpServer.Server().Validator = utils.NewValidator()
 
